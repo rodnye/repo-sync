@@ -16,7 +16,7 @@ program
     'root target directory (can be overridden per source)',
     process.cwd(),
   )
-  .option('--no-gitignore', 'disable automatic .gitignore entries for all sources')
+  .option('--gitignore', 'Create automatic .gitignore entries for all sources', false)
   .action(async (options) => {
     const filePath = resolve(options.file);
     let config: Syncfile;

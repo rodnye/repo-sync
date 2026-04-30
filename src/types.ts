@@ -4,6 +4,32 @@
 export type Syncfile = SyncSource | SyncSource[];
 
 /**
+ * A mapping rule defines a set of files to include and their destination.
+ */
+export interface MappingRule {
+  /**
+   * Glob patterns to include (relative to repo root).
+   */
+  include: string | string[];
+
+  /**
+   * Glob patterns to exclude from the included set.
+   */
+  exclude?: string | string[];
+
+  /**
+   * Relative destination directory or file path.
+   *
+   * - If it ends with '/', it is treated as a directory and matched files
+   *   are copied into it preserving their relative structure.
+   * - If it does not end with '/', it is treated as a file path. This only
+   *   works when the `include` pattern matches exactly one file. The file
+   *   will be copied and renamed to this path.
+   */
+  dest: string;
+}
+
+/**
  * A single sync source defined in the syncfile.
  */
 export interface SyncSource {
@@ -23,20 +49,29 @@ export interface SyncSource {
   branch?: string;
 
   /**
-   * Glob patterns to include (relative to repo root). Defaults to ['**​/*']
+   * Sub-directory under the global target directory where files will be
+   * placed by default. This acts as the base for all `dest` paths in
+   * the `mappings` if no `mappings` are provided, a basic mapping of
+   * `include: ['**​/*'], dest: ''` is used.
+   */
+  target?: string;
+
+  /**
+   * Detailed file mapping rules for maximum control.
+   */
+  mappings?: MappingRule[];
+
+  /**
+   * Glob patterns to include (relative to repo root).
+   * Only used if `mappings` is not provided.
    */
   include?: string[];
 
   /**
-   * Glob patterns to exclude
+   * Glob patterns to exclude.
+   * Only used if `mappings` is not provided.
    */
   exclude?: string[];
-
-  /**
-   * Sub-directory under the global target directory where files will be placed.
-   * If not set, files go directly into the global target directory.
-   */
-  target?: string;
 
   /**
    * Whether to add copied files to .gitignore.
