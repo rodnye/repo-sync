@@ -1,0 +1,53 @@
+{
+  "name": "git-repo-sync",
+  "version": "0.0.1",
+  "description": "Sync files from remote Git repositories.",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "repo-sync": "./bin/repo-sync.cjs"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepublishOnly": "pnpm build"
+  },
+  "keywords": [
+    "git",
+    "sync",
+    "files",
+    "remote",
+    "template",
+    "manifest",
+    "syncfile",
+    "github"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rodnye/git-repo-sync.git"
+  },
+  "dependencies": {
+    "commander": "^14.0.3",
+    "fast-glob": "^3.3.3",
+    "simple-git": "^3.32.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "prettier": "^3.8.3",
+    "typescript": "^6.0.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
