@@ -20,7 +20,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "prepublishOnly": "pnpm build"
+    "prepublishOnly": "tsc"
   },
   "keywords": [
     "git",
@@ -35,7 +35,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/rodnye/git-repo-sync.git"
+    "url": "https://github.com/rodnye/repo-sync.git"
   },
   "dependencies": {
     "commander": "^14.0.3",
