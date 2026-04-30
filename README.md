@@ -15,7 +15,7 @@ Common use cases:
 ## Installation
 
 ```bash
-npm install -g git-repo-sync
+npm install -g @rodny/repo-sync
 ```
 
 ## Quick Start
