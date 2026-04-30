@@ -1,6 +1,6 @@
 {
   "name": "@rodny/repo-sync",
-  "version": "0.0.2",
+  "version": "1.0.1",
   "description": "Sync files from remote Git repositories.",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
