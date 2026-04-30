@@ -21,7 +21,7 @@ Common use cases:
 > [!note]
 > An example with real use is in [this repository](https://github.com/rodnye/literary-blog).
 >
-> There are two separate branches: one for the application's [source code](https://github.com/rodnye/literary-blog/tree/master) and the other for [blog posts](https://github.com/rodnye/literary-blog/tree/editorial_worflow). When the project is compiled, the blog posts are included during the build process. This keeps the actual code separate from the data variables and databases.
+> There are two separate branches: one for the application's [source code](https://github.com/rodnye/literary-blog/tree/master) and the other for [blog posts](https://github.com/rodnye/literary-blog/tree/editorial_workflow). When the project is compiled, the blog posts are included during the build process. This keeps the actual code separate from the data variables and databases.
 
 ## Installation
 
