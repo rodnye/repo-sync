@@ -1,0 +1,35 @@
+[
+  {
+    "name": "astro_blog",
+    "repo": "https://github.com/arthelokyo/astrowind",
+    "branch": "main",
+    "target": "./dist/blog",
+    "mappings": [
+      {
+        "include": ["src/data/post/*.md"],
+        "dest": "posts/"
+      },
+      {
+        "include": ["src/data/post/markdown-elements-demo-post.mdx"],
+        "dest": "demo-post.mdx"
+      }
+    ]
+  },
+  {
+    "name": "actions_from_decidim_repo",
+    "repo": "https://github.com/decidim/decidim.git",
+    "branch": "develop",
+    "target": "./dist",
+    "mappings": [
+      {
+        "include": [".github/workflows/ci_api.yml"],
+        "dest": ".github/workflows/decidim_ci_api.yml"
+      },
+      {
+        "include": [".github/*"],
+        "exclude": ["**/*.{md,txt,sh}"],
+        "dest": ".github/actions/"
+      }
+    ]
+  }
+]
