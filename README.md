@@ -1,5 +1,11 @@
 # repo-sync
 
+[![npm version](https://img.shields.io/npm/v/@rodny/repo-sync.svg?style=for-the-badge)](https://www.npmjs.com/package/@rodny/repo-sync)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/node/v/@rodny/repo-sync.svg?style=for-the-badge)](https://nodejs.org)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/rodnye/repo-sync/npm-publish.yml?style=for-the-badge&logo=github)
+](https://github.com/rodnye/repo-sync/actions/workflows/npm-publish.yml)
+
 Synchronize specific files from remote Git repositories into your local project using a declarative JSON manifest.
 
 ## Purpose
@@ -11,6 +17,11 @@ Common use cases:
 - Pull shared configurations, CI workflows, or utility scripts from a separate repository into multiple projects
 - Keep documentation snippets or data files synchronized with their canonical source
 - Compose a project from files scattered across different repositories without vendoring them
+
+> [!note]
+> An example with real use is in [this repository](https://github.com/rodnye/literary-blog).
+>
+> There are two separate branches: one for the application's [source code](https://github.com/rodnye/literary-blog/tree/master) and the other for [blog posts](https://github.com/rodnye/literary-blog/tree/editorial_worflow). When the project is compiled, the blog posts are included during the build process. This keeps the actual code separate from the data variables and databases.
 
 ## Installation
 
