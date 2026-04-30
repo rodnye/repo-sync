@@ -1,0 +1,37 @@
+[
+  {
+    "name": "astro_blog",
+    "repo": "https://github.com/arthelokyo/astrowind",
+    "branch": "main",
+    "include": [
+      "src/data/post/*.md"
+    ],
+    "target": "./dist/blog"
+  },
+
+
+  {
+    "name": "actions_from_decidim_repo",
+    "repo": "https://github.com/decidim/decidim.git",
+    "branch": "develop",
+    "include": [
+      ".github/workflows/*.yml", 
+      ".github/actions/*.yml"
+    ],
+    "exclude": ["**/*.md"],
+    "target": "./dist"
+  },
+
+
+  {
+    "name": "eslint-config_from_airbnb",
+    "repo": "https://github.com/airbnb/javascript.git",
+    "branch": "master",
+    "include": [
+      "packages/eslint-config-airbnb-base/.eslintrc",
+      "packages/eslint-config-airbnb-base/index.js",
+      "packages/eslint-config-airbnb-base/rules"
+    ],
+    "target": "./dist"
+  }
+]
