@@ -6,7 +6,7 @@
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/rodnye/repo-sync/npm-publish.yml?style=for-the-badge&logo=github)
 ](https://github.com/rodnye/repo-sync/actions/workflows/npm-publish.yml)
 
-Synchronize specific files from remote Git repositories into your local project using a declarative JSON manifest.
+Synchronize specific files from remote Git repositories into your local project using a declarative manifest.
 
 ## Purpose
 
@@ -50,6 +50,10 @@ repo-sync
 
 Files matching `docs/*.md` from the remote repository will be copied into `./synced-docs`.
 
+> [!tip]
+> You can also use JavaScript/TypeScript configuration files for dynamic config generation.
+> See [Configuration File Formats](#configuration-file-formats) for details.
+
 ## Configuration
 
 The syncfile accepts a single source object or an array of sources. Each source requires:
@@ -74,13 +78,72 @@ Each entry in `mappings` supports:
 | `exclude` | No       | Glob pattern(s) to exclude from matches                                                    |
 | `dest`    | Yes      | Destination path; ends with `/` for a directory, otherwise treated as a single file rename |
 
+## Configuration File Formats
+
+The syncfile supports multiple file formats. By default, `repo-sync` will look for a configuration file in the following order:
+
+1. `syncfile.json`
+2. `syncfile.js`
+3. `syncfile.mjs`
+4. `syncfile.cjs`
+
+You can also specify a custom path using the `-f` / `--file` CLI option.
+
+### JSON (`syncfile.json`)
+
+Standard static configuration. Declare your sources directly as JSON:
+
+```json
+{
+  "repo": "https://github.com/owner/repo.git",
+  "branch": "main",
+  "include": ["README.md"],
+  "target": "./synced"
+}
+```
+
+### CommonJS (`syncfile.js` / `syncfile.cjs`)
+
+Use `module.exports` to export your configuration. This allows dynamic logic:
+
+```js
+const version = process.env.SYNC_VERSION || 'main';
+
+module.exports = [
+  {
+    repo: 'https://github.com/owner/repo.git',
+    branch: version,
+    include: ['config/*.json'],
+    target: './synced-config',
+  },
+];
+```
+
+If using TypeScript compiled to CJS with `export default`, the default export is automatically unwrapped for compatibility.
+
+### ES Modules (`syncfile.mjs`)
+
+Use `export default` to export your configuration:
+
+```js
+export default [
+  {
+    repo: 'https://github.com/owner/repo.git',
+    branch: 'main',
+    include: ['src/**/*.ts'],
+    target: './synced-src',
+  },
+];
+```
+
 ## CLI Options
 
 ```
 Usage: repo-sync [options]
 
 Options:
-  -f, --file <path>       path to the local syncfile.json (default: "syncfile.json")
+  -f, --file <path>       path to a syncfile (JSON, JS, MJS, CJS)
+                           auto-discovers syncfile.json, .js, .mjs, .cjs when omitted
   -c, --cache-root <dir>  base directory for repository caches (default: ".cache/repo-sync")
   -t, --target <dir>      root target directory (default: current working directory)
   --gitignore             create .gitignore entries for synced files
@@ -134,9 +197,25 @@ Sync multiple repositories with explicit mappings:
 ]
 ```
 
+Dynamic configuration with environment variables (`syncfile.js`):
+
+```js
+const env = process.env.DEPLOY_ENV || 'staging';
+
+module.exports = [
+  {
+    name: 'shared-config',
+    repo: 'https://github.com/org/config.git',
+    branch: env === 'production' ? 'main' : 'develop',
+    include: ['**/*.json'],
+    target: './config',
+  },
+];
+```
+
 ## How It Works
 
-1. Reads the syncfile manifest
+1. Discovers and reads the syncfile manifest (JSON, JS, MJS, or CJS)
 2. Clones each repository (shallow clone) into a local cache directory, or updates it if already cached
 3. Copies matched files to the target directories
 4. Optionally appends entries to `.gitignore` to prevent accidental commits of synced files
