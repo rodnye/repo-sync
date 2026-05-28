@@ -66,7 +66,7 @@ The syncfile accepts a single source object or an array of sources. Each source 
 | `exclude`   | No       | Glob patterns to exclude                                                        |
 | `target`    | No       | Target directory within the project (defaults to current directory)             |
 | `mappings`  | No       | Array of fine-grained mapping rules (takes precedence over `include`/`exclude`) |
-| `gitignore` | No       | Whether to add synced files to `.gitignore` (defaults to `true`)                |
+| `gitignore` | No       | Whether to add synced files to `.gitignore` (defaults to `false`)               |
 
 ### Mapping Rules
 
