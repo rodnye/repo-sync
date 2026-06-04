@@ -38,7 +38,7 @@
     "url": "https://github.com/rodnye/repo-sync.git"
   },
   "dependencies": {
-    "commander": "^14.0.3",
+    "commander": "^15.0.0",
     "fast-glob": "^3.3.3",
     "simple-git": "^3.32.3"
   },
