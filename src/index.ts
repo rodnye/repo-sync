@@ -67,14 +67,18 @@ async function processMapping(
   repoRoot: string,
   destBase: string,
 ): Promise<Array<{ src: string; dest: string }>> {
+  const userIgnore =
+    typeof mapping.exclude === 'undefined'
+      ? []
+      : typeof mapping.exclude === 'string'
+        ? [mapping.exclude]
+        : mapping.exclude;
+
   const files = await glob(mapping.include, {
     cwd: repoRoot,
-    ignore:
-      typeof mapping.exclude === 'undefined'
-        ? []
-        : typeof mapping.exclude === 'string'
-          ? [mapping.exclude]
-          : mapping.exclude,
+    // Always ignore the cached clone's own `.git/` — it's a side-effect of how
+    // sources are materialized, not something a consumer ever wants synced.
+    ignore: ['.git', '.git/**', ...userIgnore],
     dot: true,
     onlyFiles: true,
   });
