@@ -95,7 +95,7 @@ async function processMapping(
     let destRelative: string;
 
     if (isDestDirectory) {
-      destRelative = join(mapping.dest, basename(relativePath));
+      destRelative = join(mapping.dest, relativePath);
     } else {
       // Destination is a specific file path. Check that we only matched one file.
       if (files.length > 1) {
