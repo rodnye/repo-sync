@@ -1,0 +1,26 @@
+[
+  {
+    "name": "shared_config",
+    "repo": "https://github.com/org/shared-config.git",
+    "branch": "main",
+    "target": "./dist",
+    "transforms": [
+      {
+        "match": "**/*.{yml,toml,md}",
+        "replace": [{ "from": "__SERVICE_NAME__", "to": "billing-api" }]
+      }
+    ],
+    "mappings": [
+      {
+        "include": [".github/workflows/*.yml"],
+        "dest": ".github/workflows/",
+        "transforms": [
+          {
+            "match": ".github/workflows/deploy.yml",
+            "replace": [{ "from": "__DEPLOY_ENV__", "to": "production" }]
+          }
+        ]
+      }
+    ]
+  }
+]

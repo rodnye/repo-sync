@@ -3,6 +3,7 @@ import { dirname, join, resolve, basename } from 'node:path';
 import { cwd } from 'node:process';
 import simpleGit, { CheckRepoActions } from 'simple-git';
 import glob from 'fast-glob';
+import { compileTransforms, transformFile, validateTransforms } from './transform';
 import type { SyncOptions, SyncSource, Syncfile, MappingRule } from './types';
 
 /**
@@ -66,7 +67,7 @@ async function processMapping(
   mapping: Omit<MappingRule, 'include'> & { include: string[] },
   repoRoot: string,
   destBase: string,
-): Promise<Array<{ src: string; dest: string }>> {
+): Promise<Array<{ src: string; dest: string; relativePath: string }>> {
   const userIgnore =
     typeof mapping.exclude === 'undefined'
       ? []
@@ -89,7 +90,7 @@ async function processMapping(
   }
 
   const isDestDirectory = mapping.dest.endsWith('/') || mapping.dest === '';
-  const operations: Array<{ src: string; dest: string }> = [];
+  const operations: Array<{ src: string; dest: string; relativePath: string }> = [];
 
   for (const relativePath of files) {
     let destRelative: string;
@@ -110,7 +111,7 @@ async function processMapping(
 
     const src = join(repoRoot, relativePath);
     const dest = resolve(destBase, destRelative);
-    operations.push({ src, dest });
+    operations.push({ src, dest, relativePath });
   }
 
   return operations;
@@ -130,14 +131,21 @@ export async function sync(options: SyncOptions): Promise<void> {
     const sourceTarget = source.target ? resolve(targetDir, source.target) : targetDir;
     const sourceGitignore = source.gitignore ?? globalGitignore;
     const sourceCacheDir = join(cacheRoot, sourceName);
+    const sourceTransforms = source.transforms ?? [];
 
-    // 1. Ensure repository clone
+    // 1. Validate transforms before touching the network
+    validateTransforms(sourceTransforms, `Source "${sourceName}"`);
+    for (const mapping of source.mappings ?? []) {
+      validateTransforms(mapping.transforms, `Mapping with dest "${mapping.dest}"`);
+    }
+
+    // 2. Ensure repository clone
     const { branch } = await ensureRepoClone(source.repo, source.branch, sourceCacheDir);
 
     console.log(`\n~ Syncing source "${sourceName}"`);
     console.log(`  ▸ Repo: ${source.repo}  Branch: ${branch}`);
 
-    // 2. Determine the mapping rules to use
+    // 3. Determine the mapping rules to use
     let mappings: MappingRule[];
     if (source.mappings && source.mappings.length > 0) {
       mappings = source.mappings;
@@ -154,7 +162,7 @@ export async function sync(options: SyncOptions): Promise<void> {
       ];
     }
 
-    // 3. Process each mapping rule
+    // 4. Process each mapping rule
     let totalCopied = 0;
     for (const mapping of mappings) {
       const include = typeof mapping.include == 'string' ? [mapping.include] : mapping.include;
@@ -169,13 +177,21 @@ export async function sync(options: SyncOptions): Promise<void> {
 
         console.log(`  ▸ Rule: include=[${include.join(', ')}] → dest="${mapping.dest || '.'}"`);
 
-        for (const { src, dest } of operations) {
+        // Source-level transforms run first, then the ones declared on the mapping
+        const transforms = compileTransforms([...sourceTransforms, ...(mapping.transforms ?? [])]);
+
+        for (const { src, dest, relativePath } of operations) {
           const destDir = dirname(dest);
           const fileName = basename(dest);
 
           console.log(`    - Copying: ${basename(src)} → ${dest}`);
           await mkdir(destDir, { recursive: true });
           await copyFile(src, dest);
+          await transformFile(src, dest, transforms, {
+            source: { name: sourceName, repo: source.repo, branch },
+            target: { dir: sourceTarget },
+            file: { path: relativePath, dest },
+          });
 
           if (sourceGitignore) {
             await appendToGitignoreIfMissing(destDir, fileName);
@@ -194,3 +210,4 @@ export async function sync(options: SyncOptions): Promise<void> {
 }
 
 export type { SyncOptions, SyncSource, Syncfile };
+export type { ReplaceRule, SyncTransform, TransformContext } from './types';

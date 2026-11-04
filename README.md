@@ -58,25 +58,87 @@ Files matching `docs/*.md` from the remote repository will be copied into `./syn
 
 The syncfile accepts a single source object or an array of sources. Each source requires:
 
-| Field       | Required | Description                                                                     |
-| ----------- | -------- | ------------------------------------------------------------------------------- |
-| `repo`      | Yes      | Git repository clone URL                                                        |
-| `branch`    | No       | Branch to track (defaults to the remote default branch)                         |
-| `include`   | No       | Glob patterns for files to sync (defaults to `**/*`)                            |
-| `exclude`   | No       | Glob patterns to exclude                                                        |
-| `target`    | No       | Target directory within the project (defaults to current directory)             |
-| `mappings`  | No       | Array of fine-grained mapping rules (takes precedence over `include`/`exclude`) |
-| `gitignore` | No       | Whether to add synced files to `.gitignore` (defaults to `false`)               |
+| Field        | Required | Description                                                                     |
+| ------------ | -------- | ------------------------------------------------------------------------------- |
+| `repo`       | Yes      | Git repository clone URL                                                        |
+| `branch`     | No       | Branch to track (defaults to the remote default branch)                         |
+| `include`    | No       | Glob patterns for files to sync (defaults to `**/*`)                            |
+| `exclude`    | No       | Glob patterns to exclude                                                        |
+| `target`     | No       | Target directory within the project (defaults to current directory)             |
+| `mappings`   | No       | Array of fine-grained mapping rules (takes precedence over `include`/`exclude`) |
+| `gitignore`  | No       | Whether to add synced files to `.gitignore` (defaults to `false`)               |
+| `transforms` | No       | Content transforms applied to every file copied from the source                 |
 
 ### Mapping Rules
 
 Each entry in `mappings` supports:
 
-| Field     | Required | Description                                                                                |
-| --------- | -------- | ------------------------------------------------------------------------------------------ |
-| `include` | Yes      | Glob pattern(s) for files to match                                                         |
-| `exclude` | No       | Glob pattern(s) to exclude from matches                                                    |
-| `dest`    | Yes      | Destination path; ends with `/` for a directory, otherwise treated as a single file rename |
+| Field        | Required | Description                                                                                |
+| ------------ | -------- | ------------------------------------------------------------------------------------------ |
+| `include`    | Yes      | Glob pattern(s) for files to match                                                         |
+| `exclude`    | No       | Glob pattern(s) to exclude from matches                                                    |
+| `dest`       | Yes      | Destination path; ends with `/` for a directory, otherwise treated as a single file rename |
+| `transforms` | No       | Content transforms applied only to the files copied by this rule                           |
+
+### Transforms
+
+Transforms rewrite the content of text files **after** they are copied, so templates can be customized per target. They only touch the copied files in your project; the cached clone is never modified.
+
+Each entry in `transforms` supports:
+
+| Field     | Required | Description                                                                        |
+| --------- | -------- | ---------------------------------------------------------------------------------- |
+| `match`   | Yes      | Glob pattern(s), relative to the repository root, selecting the files to transform |
+| `replace` | Yes      | Array of `{ "from", "to" }` rules applied in order to every matched file           |
+
+How they behave:
+
+- `from` is matched **literally** (no regex, no escaping) and every occurrence is replaced.
+- `match` is mandatory; there is no implicit "all files".
+- Files that are not valid UTF-8 text (binaries) are skipped and reported in the log.
+- Source-level transforms run first, then the ones declared on the mapping.
+- Rules are applied in order, so a later rule sees the output of the previous one.
+
+```json
+{
+  "repo": "https://github.com/org/shared-config.git",
+  "include": ["**/*"],
+  "transforms": [
+    {
+      "match": "**/*.{yml,toml,md}",
+      "replace": [{ "from": "__SERVICE_NAME__", "to": "billing-api" }]
+    }
+  ]
+}
+```
+
+In JavaScript/TypeScript configs, `to` can also be a function that receives the context injected by repo-sync:
+
+```js
+module.exports = {
+  name: 'shared-config',
+  repo: 'https://github.com/org/shared-config.git',
+  transforms: [
+    {
+      match: '**/*.md',
+      replace: [
+        { from: '__BRANCH__', to: (ctx) => ctx.source.branch },
+        { from: '__ENV__', to: () => process.env.DEPLOY_ENV ?? 'staging' },
+      ],
+    },
+  ],
+};
+```
+
+The context object has this shape:
+
+```ts
+interface TransformContext {
+  source: { name: string; repo: string; branch: string }; // branch is the effective one
+  target: { dir: string }; // absolute target directory of the source
+  file: { path: string; dest: string }; // repo-relative path and absolute destination
+}
+```
 
 ## Configuration File Formats
 
@@ -218,6 +280,7 @@ module.exports = [
 1. Discovers and reads the syncfile manifest (JSON, JS, MJS, or CJS)
 2. Clones each repository (shallow clone) into a local cache directory, or updates it if already cached
 3. Copies matched files to the target directories
-4. Optionally appends entries to `.gitignore` to prevent accidental commits of synced files
+4. Optionally rewrites the content of copied text files using `transforms`
+5. Optionally appends entries to `.gitignore` to prevent accidental commits of synced files
 
 Repositories are cached in `.cache/repo-sync` by default and only fetched on subsequent runs.
