@@ -4,6 +4,69 @@
 export type Syncfile = SyncSource | SyncSource[];
 
 /**
+ * Context injected into dynamic replacement values (a `to` function).
+ */
+export interface TransformContext {
+  /**
+   * Source being synced. `branch` is the effective branch, even when the
+   * source did not declare one.
+   */
+  source: {
+    name: string;
+    repo: string;
+    branch: string;
+  };
+
+  /**
+   * Absolute target directory of the source.
+   */
+  target: {
+    dir: string;
+  };
+
+  /**
+   * File being transformed: its path relative to the repo root (forward
+   * slashes) and its absolute destination path.
+   */
+  file: {
+    path: string;
+    dest: string;
+  };
+}
+
+/**
+ * A literal replacement applied to the content of a file.
+ */
+export interface ReplaceRule {
+  /**
+   * Exact text to look for. Every occurrence is replaced (no regex, no escaping).
+   */
+  from: string;
+
+  /**
+   * Replacement value. Use a function to compute it from the injected context
+   * (only possible in JS/TS configs or when calling `sync()` programmatically).
+   */
+  to: string | ((ctx: TransformContext) => string);
+}
+
+/**
+ * A set of replacements applied to the text files matched by `match`.
+ */
+export interface SyncTransform {
+  /**
+   * Glob patterns (relative to repo root) selecting the files to transform.
+   * Required: transforms are never applied to "all files" implicitly.
+   */
+  match: string | string[];
+
+  /**
+   * Replacements to apply, in order, to every matched file.
+   */
+  replace: ReplaceRule[];
+}
+
+/**
  * A mapping rule defines a set of files to include and their destination.
  */
 export interface MappingRule {
@@ -27,6 +90,12 @@ export interface MappingRule {
    *   will be copied and renamed to this path.
    */
   dest: string;
+
+  /**
+   * Content transforms applied only to the files copied by this mapping,
+   * after the source-level `transforms`.
+   */
+  transforms?: SyncTransform[];
 }
 
 /**
@@ -52,7 +121,7 @@ export interface SyncSource {
    * Sub-directory under the global target directory where files will be
    * placed by default. This acts as the base for all `dest` paths in
    * the `mappings` if no `mappings` are provided, a basic mapping of
-   * `include: ['**​/*'], dest: ''` is used.
+   * `include: ['** /*'], dest: ''` is used.
    */
   target?: string;
 
@@ -78,6 +147,12 @@ export interface SyncSource {
    * If omitted, the global `addToGitignore` setting (default true) is used.
    */
   gitignore?: boolean;
+
+  /**
+   * Content transforms applied to every file copied from this source,
+   * before any mapping-level `transforms`. Works with or without `mappings`.
+   */
+  transforms?: SyncTransform[];
 }
 
 /**
