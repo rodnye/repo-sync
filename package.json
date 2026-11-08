@@ -41,7 +41,7 @@
     "commander": "^15.0.0",
     "fast-glob": "^3.3.3",
     "picomatch": "^4.0.7",
-    "simple-git": "^3.32.3"
+    "simple-git": "^4.0.2"
   },
   "devDependencies": {
     "@types/node": "^26.4.0",
