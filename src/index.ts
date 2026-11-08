@@ -1,7 +1,7 @@
 import { access, appendFile, copyFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve, basename } from 'node:path';
 import { cwd } from 'node:process';
-import simpleGit, { CheckRepoActions } from 'simple-git';
+import { simpleGit, CheckRepoActions } from 'simple-git';
 import glob from 'fast-glob';
 import { compileTransforms, transformFile, validateTransforms } from './transform';
 import type { SyncOptions, SyncSource, Syncfile, MappingRule } from './types';
@@ -102,8 +102,8 @@ async function processMapping(
       if (files.length > 1) {
         throw new Error(
           `Mapping with dest "${mapping.dest}" is a file, but patterns matched multiple files: ` +
-            files.join(', ') +
-            '. Use a directory dest (ending with /) or narrow the pattern to a single file.',
+          files.join(', ') +
+          '. Use a directory dest (ending with /) or narrow the pattern to a single file.',
         );
       }
       destRelative = mapping.dest;
